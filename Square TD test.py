@@ -38,6 +38,11 @@ towers_data = {
     "Sniper (950)":  {"price": 900,  "owned": False},
     "Laser (1,2K)":  {"price": 1500, "owned": False},
     "Frost Blast (1,8K)":  {"price": 0, "owned": False},
+    "Poison (650)":  {"price": 2400, "owned": False},
+    "Flamethrower (800)":  {"price": 3200, "owned": False},
+    "Medic (950)":  {"price": 3800, "owned": False},
+    "Tesla (1,1K)":  {"price": 4400, "owned": False},
+    "Railgun (1,5K)":  {"price": 6000, "owned": False},
 }
 
 def save_inventory():
@@ -87,49 +92,38 @@ FONT_UI_SMALL = pygame.font.SysFont("Arial", 16)
 FONT_UI_MED = pygame.font.SysFont("Arial", 20)
 
 # ------------------------------------------------
-# BOSS HP BAR SYSTEM - POSISI & URUTAN SAJA
+# BOSS HP BAR SYSTEM
 # ------------------------------------------------
 class BossHPBar:
-    """Kelas untuk mengelola urutan dan posisi bar HP boss (boss menggambar sendiri)"""
     def __init__(self):
-        self.displayed_bosses = []  # Daftar boss yang ditampilkan (max 3)
+        self.displayed_bosses = []
         self.MAX_DISPLAYED = 3
-        self.bar_height = 40  # Tinggi bar + spacing
+        self.bar_height = 40
         self.bar_spacing = 10
-        self.start_y = 10  # Posisi Y awal untuk boss pertama
+        self.start_y = 10
         
     def update(self, all_bosses):
-        """Update daftar boss yang ditampilkan, diurutkan berdasarkan HP terbanyak"""
-        # Reset semua boss display_hp_bar ke False (semua boss default tidak tampil)
         for boss in all_bosses:
             boss.display_hp_bar = False
-        
-        # Hapus boss yang sudah mati
+
         self.displayed_bosses = [boss for boss in self.displayed_bosses if boss.hp > 0]
-        
-        # Tambahkan boss baru yang belum ada di displayed_bosses
+
         for boss in all_bosses:
             if boss.hp > 0 and boss not in self.displayed_bosses:
                 self.displayed_bosses.append(boss)
-        
-        # Urutkan berdasarkan HP terbanyak (HP tinggi di atas)
+
         self.displayed_bosses.sort(key=lambda b: b.hp, reverse=True)
-        
-        # Batasi maksimal 3 boss yang ditampilkan
+
         self.displayed_bosses = self.displayed_bosses[:self.MAX_DISPLAYED]
-        
-        # Atur posisi Y dan flag display HANYA untuk TOP 3
+
         for i, boss in enumerate(self.displayed_bosses):
-            # Set atribut khusus untuk posisi bar HP
-            boss.hp_bar_slot = i  # Slot 0, 1, atau 2
+            boss.hp_bar_slot = i
             boss.hp_bar_y = self.start_y + i * (self.bar_height + self.bar_spacing)
-            boss.display_hp_bar = True  # HANYA TOP 3 yang boleh tampil bar HP
+            boss.display_hp_bar = True
     
     def reset(self):
-        """Reset semua boss yang ditampilkan"""
         self.displayed_bosses = []
 
-# Instance global untuk boss HP bar
 boss_hp_bar = BossHPBar()
 
 # ------------------------------------------------
@@ -188,19 +182,18 @@ staff_rotation = 0
 # ------------------------------------------------
 # ANIMASI GARIS LUAR TOMBOL
 # ------------------------------------------------
-border_colors = [(255, 0, 0), (255, 255, 0), (0, 0, 255), (255, 0, 255)]  # Merah, Kuning, Biru, Ungu
+border_colors = [(255, 0, 0), (255, 255, 0), (0, 0, 255), (255, 0, 255)]
 border_color_index = 0
 border_color_timer = 0
-border_color_change_interval = 300  # Ganti warna setiap 300ms
+border_color_change_interval = 300
 
 # ------------------------------------------------
-# CLICK COOLDOWN - Mencegah klik terlalu cepat
+# CLICK COOLDOWN
 # ------------------------------------------------
 last_click_time = 0
-click_cooldown = 800  # Minimal 200ms antara klik (0.2 detik)
+click_cooldown = 800
 
 def can_click():
-    """Cek apakah klik diperbolehkan (cooldown sudah selesai)"""
     global last_click_time
     current_time = pygame.time.get_ticks()
     if current_time - last_click_time >= click_cooldown:
@@ -209,9 +202,6 @@ def can_click():
     return False
 
 def format_number(num):
-    """Format angka dengan pemisah ribuan menggunakan titik
-    Contoh: 1000 -> 1.000, 1523906 -> 1.523.906
-    """
     return f"{int(num):,}".replace(",", ".")
 
 def draw_wrapped_text_center(surface, text, font, color, y, max_width):
@@ -358,26 +348,19 @@ def draw_circle_intro_animation():
 def draw_core_animation():
     global core_angle
     core_angle += 0.05
-    
-    # Posisi orbit di tengah atas
     center_x = WIDTH // 2
     center_y = 200
-    
-    # Hitung posisi core yang berputar
     cx = center_x + math.cos(core_angle) * core_orbit_radius
     cy = center_y + math.sin(core_angle) * core_orbit_radius
-    
-    # Gambar core dengan efek glow
+
     pygame.draw.circle(screen, (255, 0, 0), (int(cx), int(cy)), core_radius)
-    
-    # Gambar sinar dari core
+
     for angle in range(0, 360, 45):
         rad = math.radians(angle + core_angle * 50)
         x_end = cx + math.cos(rad) * core_radius
         y_end = cy + math.sin(rad) * core_radius
         pygame.draw.line(screen, (255, 100, 100), (int(cx), int(cy)), (int(x_end), int(y_end)), 2)
-    
-    # Glow rings
+
     for glow in range(1, 4):
         pygame.draw.circle(screen, (255, 50, 50), (int(cx), int(cy)), core_radius + glow * 4, 1)
 
@@ -386,36 +369,24 @@ def draw_core_animation():
 # ------------------------------------------------
 def draw_staff_animation():
     global staff_float_offset, staff_rotation
-    
-    # Float effect
+
     staff_float_offset += 0.05
     float_y = math.sin(staff_float_offset) * 15
-    
-    # Rotation
     staff_rotation += 1
-    
-    # Posisi staff di kanan bawah
     staff_x = WIDTH - 150
     staff_y = HEIGHT - 150 + float_y
-    
-    # Gambar staff (tongkat)
     staff_color = (120, 90, 60)
     staff_start = (staff_x, staff_y + 40)
     staff_end = (staff_x + 80, staff_y + 40)
     pygame.draw.line(screen, staff_color, staff_start, staff_end, 4)
-    
-    # Gambar orb dengan rotation effect
     orb_color = (170, 0, 200)
     orb_pos = staff_end
-    
-    # Pulsing orb
     pulse = abs(math.sin(staff_float_offset * 2))
     orb_radius = int(10 + pulse * 3)
     
     pygame.draw.circle(screen, orb_color, orb_pos, orb_radius)
     pygame.draw.circle(screen, (255, 100, 255), orb_pos, orb_radius - 3)
-    
-    # Rotating particles around orb
+
     for i in range(4):
         angle = math.radians(staff_rotation + i * 90)
         px = orb_pos[0] + math.cos(angle) * 20
@@ -442,20 +413,17 @@ def draw_button(text, x, y, w, h, mouse_pos):
     rect = pygame.Rect(x, y, w, h)
     is_hovered = rect.collidepoint(mouse_pos)
     color = BLUE if is_hovered else GRAY
-    
-    # Update animasi warna border jika tombol di-hover
+
     if is_hovered:
         current_time = pygame.time.get_ticks()
         if current_time - border_color_timer > border_color_change_interval:
             border_color_index = (border_color_index + 1) % len(border_colors)
             border_color_timer = current_time
-        
-        # Gambar tombol dengan border berwarna
+
         pygame.draw.rect(screen, color, rect, border_radius=25)
-        # Gambar garis luar berwarna berganti-ganti
+
         pygame.draw.rect(screen, border_colors[border_color_index], rect, width=5, border_radius=25)
     else:
-        # Gambar tombol normal tanpa border khusus
         pygame.draw.rect(screen, color, rect, border_radius=25)
 
     label = font_mid.render(text, True, WHITE)
@@ -472,16 +440,12 @@ def intro_screen():
 
     screen.fill(BLACK)
 
-    # Animasi dasar - Square biru (selalu ada)
     draw_intro_animation()
 
-    # Animasi Core Circle (unlock setelah menang Chapter 1)
     if save.get("chapter1_completed", False):
         draw_core_animation()
         draw_circle_intro_animation()
-    
-    
-    # Animasi Staff Grand Shaman (unlock setelah menang Winter Event)
+
     if save.get("winter_event_completed", False):
         draw_staff_animation()
 
@@ -504,7 +468,7 @@ def intro_screen():
             pygame.quit(); sys.exit()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not can_click():  # Cek cooldown
+            if not can_click():
                 continue
                 
             mx, my = event.pos
@@ -596,7 +560,7 @@ def info_screen():
             sys.exit()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not can_click():  # Cek cooldown
+            if not can_click():
                 continue
                 
             mx, my = event.pos
@@ -617,7 +581,6 @@ def home_screen():
     title = font_big.render("HOME", True, WHITE)
     screen.blit(title, (WIDTH//2 - title.get_width()//2, 80))
 
-    # New Year 2026 Bonus Check
     if not save.get("new_year_2026_claimed", False):
         bonus_rect = pygame.Rect(WIDTH//2 - 250, 150, 800, 70)
         pygame.draw.rect(screen, (255, 215, 0), bonus_rect, border_radius=15)
@@ -628,8 +591,6 @@ def home_screen():
     btn_story     = draw_button("Story",     WIDTH//2 - 250, 350, 500, 90, mouse_pos)
     btn_event     = draw_button("Event",     WIDTH//2 - 250, 460, 500, 90, mouse_pos)
     btn_history   = draw_button("History",   WIDTH//2 - 250, 570, 500, 90, mouse_pos)
-    
-    # Tombol Back ke Intro
     btn_back = draw_button("Kembali", 50, HEIGHT - 100, 250, 70, mouse_pos)
 
     for event in pygame.event.get():
@@ -637,12 +598,11 @@ def home_screen():
             pygame.quit(); sys.exit()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not can_click():  # Cek cooldown
+            if not can_click():
                 continue
                 
-            mx, my = event.pos  # Gunakan posisi mouse yang akurat saat diklik
-            
-            # Check New Year bonus claim
+            mx, my = event.pos
+
             if not save.get("new_year_2026_claimed", False):
                 bonus_rect = pygame.Rect(WIDTH//2 - 250, 150, 800, 70)
                 if bonus_rect.collidepoint(mx, my):
@@ -707,10 +667,10 @@ def event_menu():
                 pygame.quit(); sys.exit()
                 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if not can_click():  # Cek cooldown
+                if not can_click():
                     continue
                     
-                mx, my = event.pos  # Gunakan posisi mouse yang akurat
+                mx, my = event.pos
                 
                 if chapter1_completed and btn_we.collidepoint(mx, my):
                     game_state = "event"
@@ -791,7 +751,7 @@ def inventory_screen():
             pygame.quit(); sys.exit()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not can_click():  # Cek cooldown
+            if not can_click():
                 continue
                 
             mx, my = event.pos
@@ -884,7 +844,7 @@ def show_frost_blast_info_popup():
                 sys.exit()
             
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if not can_click():  # Cek cooldown
+                if not can_click():
                     continue
                     
                 mx, my = event.pos
@@ -1158,7 +1118,7 @@ def history_screen():
             sys.exit()
             
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not can_click():  # Cek cooldown
+            if not can_click():
                 continue
                 
             mx, my = event.pos
@@ -1193,34 +1153,28 @@ def chapter_menu():
     title = font_big.render("Pilih Game", True, YELLOW)
     screen.blit(title, (100, 50))
 
-    # Chapter I - Always unlocked
     btn1 = draw_button("Chapter I – Circle Invasion", 100, 160, 650, 120, mouse_pos)
-
-    # Chapter II - Locked
     chapter2_locked_rect = pygame.Rect(100, 300, 650, 120)
     pygame.draw.rect(screen, (80, 80, 80), chapter2_locked_rect, border_radius=25)
-    
-    # Lock icon for Chapter II
+
     lock_size = 40
     lock_x = 120
     lock_y = 320
     pygame.draw.rect(screen, (200, 200, 200), (lock_x, lock_y + 15, lock_size, 25), border_radius=5)
     pygame.draw.circle(screen, (200, 200, 200), (lock_x + lock_size//2, lock_y + 10), 12, 3)
     
-    locked_text2 = font_mid.render("Chapter II – Triangle War", True, (150, 150, 150))
+    locked_text2 = font_mid.render("Chapter II – ?????", True, (150, 150, 150))
     screen.blit(locked_text2, (180, 335))
 
-    # Chapter III - Locked
     chapter3_locked_rect = pygame.Rect(100, 440, 650, 120)
     pygame.draw.rect(screen, (80, 80, 80), chapter3_locked_rect, border_radius=25)
-    
-    # Lock icon for Chapter III
+
     lock_x = 120
     lock_y = 460
     pygame.draw.rect(screen, (200, 200, 200), (lock_x, lock_y + 15, lock_size, 25), border_radius=5)
     pygame.draw.circle(screen, (200, 200, 200), (lock_x + lock_size//2, lock_y + 10), 12, 3)
     
-    locked_text3 = font_mid.render("Chapter III – Slavery Square", True, (150, 150, 150))
+    locked_text3 = font_mid.render("Chapter III – Triangle War", True, (150, 150, 150))
     screen.blit(locked_text3, (180, 475))
 
     btn_back = draw_button("Kembali", 100, 580, 300, 100, mouse_pos)
@@ -1230,17 +1184,16 @@ def chapter_menu():
             pygame.quit(); sys.exit()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not can_click():  # Cek cooldown
+            if not can_click():
                 continue
                 
-            mx, my = event.pos  # Gunakan posisi mouse yang akurat saat diklik
+            mx, my = event.pos
             
             if btn1.collidepoint(mx, my): 
                 current_game = 1
                 game_state = "game"
             elif btn_back.collidepoint(mx, my):
                 game_state = "home"
-            # Chapter II & III are locked - no action on click
 
     pygame.display.update()
 
@@ -1685,17 +1638,14 @@ class MafiaCent(Circle):
         super().apply_slow(capped_amount, duration)
 
     def draw(self, surf):
-        # Gambar sprite boss
         pygame.draw.circle(surf, self.color, (int(self.x), int(self.y)), self.radius)
 
         for lx, ly, timer in self.lasers:
             pygame.draw.line(surf, YELLOW, (int(self.x), int(self.y)), (int(lx), int(ly)), 4)
-        
-        # Cek apakah boss ini boleh tampil bar HP (TOP 3)
+
         if not getattr(self, 'display_hp_bar', False):
-            return  # Tidak tampil bar HP, selesai
-        
-        # Gambar bar HP (hanya jika display_hp_bar = True)
+            return
+
         bar_width = 600
         bar_height = 40
         x = WIDTH // 2 - bar_width // 2
@@ -2154,12 +2104,10 @@ class PiMaster(Circle):
         if not self.shield_active:
             pi = self.font_pi.render("π", True, (255, 0, 0))
             surf.blit(pi, pi.get_rect(center=(x, y)))
-        
-        # Cek apakah boss ini boleh tampil bar HP (TOP 3)
+
         if not getattr(self, 'display_hp_bar', False):
-            return  # Tidak tampil bar HP, selesai
-        
-        # Gambar bar HP (hanya jika display_hp_bar = True)
+            return
+
         bar_width = 600
         bar_height = 40
         bx = WIDTH // 2 - bar_width // 2
@@ -2770,7 +2718,6 @@ class CycleLead(Circle):
                 1
             )
 
-        # Laser effect
         if self.laser_target_pos:
             tx, ty = self.laser_target_pos
             pygame.draw.line(
@@ -2780,17 +2727,14 @@ class CycleLead(Circle):
                 (int(tx), int(ty)),
                 self.laser_width
             )
-        
-        # Cek apakah boss ini boleh tampil bar HP (TOP 3)
+
         if not getattr(self, 'display_hp_bar', False):
-            return  # Tidak tampil bar HP, selesai
-        
-        # Gambar bar HP (hanya jika display_hp_bar = True)
+            return
+
         bar_width = 600
         bar_height = 40
         bx = WIDTH // 2 - bar_width // 2
         by = getattr(self, 'hp_bar_y', 40)
-
         shield = max(self.shield, 0)
         hp = max(self.hp, 0)
 
@@ -2812,7 +2756,6 @@ class CycleLead(Circle):
         text = f"Cyclo Lead: {int(total_value)} / {int(self.max_hp)}"
         text_surf = font.render(text, True, (0, 0, 0))
         text_rect = text_surf.get_rect(center=(WIDTH // 2, by + bar_height // 2))
-
         outline_offsets = [(-1,0), (1,0), (0,-1), (0,1)]
         for ox, oy in outline_offsets:
             outline_surf = font.render(text, True, (255,0,0))
@@ -3076,14 +3019,11 @@ class HauntingWendigo(Circle):
     def draw(self, surf):
         bar_width = 600  
         bar_height = 40  
-        x = WIDTH // 2 - bar_width // 2  
-        # Gunakan posisi Y dari sistem jika ada, jika tidak gunakan default
-        # Cek apakah boss ini boleh tampil bar HP (TOP 3)
+        x = WIDTH // 2 - bar_width // 2
         if not getattr(self, 'display_hp_bar', False):
-            return  # Tidak tampil bar HP, selesai
+            return
         
-        y = getattr(self, 'hp_bar_y', 50)  
-
+        y = getattr(self, 'hp_bar_y', 50)
         hp_ratio = self.hp / self.max_hp  
         hp_width = int(bar_width * hp_ratio)  
 
@@ -3402,10 +3342,8 @@ class CryingWendigo(Circle):
         bar_width = 600
         bar_height = 40
         x = WIDTH // 2 - bar_width // 2
-        # Gunakan posisi Y dari sistem jika ada, jika tidak gunakan default
-        # Cek apakah boss ini boleh tampil bar HP (TOP 3)
         if not getattr(self, 'display_hp_bar', False):
-            return  # Tidak tampil bar HP, selesai
+            return
         
         y = getattr(self, 'hp_bar_y', 50)
 
@@ -3715,13 +3653,10 @@ class CorruptedPiMaster(Circle):
         bar_width = 600
         bar_height = 40
         bx = WIDTH // 2 - bar_width // 2
-        # Gunakan posisi Y dari sistem jika ada, jika tidak gunakan default
-        # Cek apakah boss ini boleh tampil bar HP (TOP 3)
         if not getattr(self, 'display_hp_bar', False):
-            return  # Tidak tampil bar HP, selesai
+            return
         
         by = getattr(self, 'hp_bar_y', 50)
-
         shield = max(self.shield_hp if self.shield_active else 0, 0)
         hp = max(self.hp, 0)
 
@@ -4146,7 +4081,6 @@ class Tower:
             2: 800,
             3: 1300
         }
-        # Effect tracking
         self.pulse_effect = False
         self.chrono_effect = False
         self.effect_icon_timer = 0
@@ -4208,22 +4142,16 @@ class Tower:
             dist = math.hypot(dx, dy)
 
             if dist <= self.range:
-                # Skip OrbEnemy atau enemy tanpa path (mereka orbit parent)
                 if not hasattr(e, 'path') or e.path is None:
-                    # Gunakan waypoint_index parent jika ada, atau skip
                     if hasattr(e, 'parent') and hasattr(e.parent, 'waypoint_index'):
                         progress = e.parent.waypoint_index
                     else:
-                        continue
-                # Hitung progress actual: waypoint_index + progress ke waypoint berikutnya
+                        continue7
                 elif e.waypoint_index < len(e.path):
                     tx, ty = e.path[e.waypoint_index]
                     dist_to_next = math.hypot(tx - e.x, ty - e.y)
-                    # Progress = waypoint_index - jarak ke waypoint berikutnya (semakin kecil jaraknya, semakin depan)
-                    # Kita invert dengan nilai besar agar musuh yang lebih dekat ke waypoint = progress lebih besar
                     progress = e.waypoint_index - (dist_to_next / 1000.0)
                 else:
-                    # Kalau sudah mencapai akhir path
                     progress = e.waypoint_index
                 
                 if progress > best_progress:
@@ -4269,13 +4197,11 @@ class Tower:
                 surf, (0, 255, 0),
                 (self.x - self.size//2, self.y - self.size//2 - 12, hp_w, 8)
             )
-        
-        # Effect indicators
+
         icon_y_offset = self.size//2 + 15
         icon_x = self.x - self.size//2
         
         if getattr(self, 'pulse_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
-            # PulseWalker effect - Green pulsing circle
             pulse_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
             pulse_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
             pygame.draw.circle(pulse_surf, (0, 255, 127, pulse_alpha), (6, 6), 5)
@@ -4283,7 +4209,7 @@ class Tower:
             icon_x += 14
         
         if getattr(self, 'chrono_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
-            # ChronoCircle effect - Blue clock icon
+
             chrono_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
             chrono_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
             pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 5)
@@ -4295,7 +4221,6 @@ class Tower:
             return False
 
         self.level += 1
-
         self.total_invest += self.upgrade_cost[self.level - 1]
 
         if self.level == 2:
@@ -4359,7 +4284,6 @@ class Shotgunner(Tower):
         self.show_laser_timer = 0
 
     def update(self, dt, enemies):
-        # Handle effect tracking
         if self.accuracy_penalty_timer > 0:
             self.accuracy_penalty_timer -= 1
             self.pulse_effect = True
@@ -4378,8 +4302,7 @@ class Shotgunner(Tower):
         
         if self.effect_icon_timer > 0:
             self.effect_icon_timer -= 1
-        
-        # Shotgun logic
+
         if self.cooldown > 0:
             self.cooldown -= dt
 
@@ -4387,7 +4310,6 @@ class Shotgunner(Tower):
         if not target or self.cooldown > 0:
             return
 
-        # Apply accuracy penalty
         if random.random() < self.accuracy_penalty:
             self.cooldown = self.fire_rate / self.fire_rate_modifier
             self.show_laser_timer = 3
@@ -4464,8 +4386,7 @@ class Shotgunner(Tower):
                  self.y - self.size//2 - 10,
                  hp_w, 6)
             )
-        
-        # Effect indicators
+
         icon_y_offset = self.size//2 + 15
         icon_x = self.x - self.size//2
         
@@ -4567,7 +4488,6 @@ class ARTower(Tower):
         }
 
     def update(self, dt, enemies):
-        # Handle effect tracking
         if self.accuracy_penalty_timer > 0:
             self.accuracy_penalty_timer -= 1
             self.pulse_effect = True
@@ -4586,8 +4506,7 @@ class ARTower(Tower):
         
         if self.effect_icon_timer > 0:
             self.effect_icon_timer -= 1
-        
-        # AR logic
+
         if self.cooldown > 0:
             self.cooldown -= dt
 
@@ -4597,7 +4516,6 @@ class ARTower(Tower):
             return
 
         if self.cooldown <= 0:
-            # Apply accuracy penalty
             if random.random() < self.accuracy_penalty:
                 self.cooldown = self.fire_rate / self.fire_rate_modifier
                 self.show_laser_timer = 3
@@ -4664,7 +4582,6 @@ class SniperTower(Tower):
         }
 
     def update(self, dt, enemies):
-        # Handle effect tracking
         if self.accuracy_penalty_timer > 0:
             self.accuracy_penalty_timer -= 1
             self.pulse_effect = True
@@ -4683,15 +4600,13 @@ class SniperTower(Tower):
         
         if self.effect_icon_timer > 0:
             self.effect_icon_timer -= 1
-        
-        # Sniper logic
+
         if self.cooldown > 0:
             self.cooldown -= dt
 
         target = self.get_first_enemy(enemies)
 
         if target and self.cooldown <= 0:
-            # Apply accuracy penalty
             if random.random() < self.accuracy_penalty:
                 self.cooldown = self.fire_rate / self.fire_rate_modifier
                 self.show_laser_timer = 8
@@ -4876,7 +4791,6 @@ class LaserTower(Tower):
         }
 
     def update(self, dt, enemies):
-        # Handle effect tracking
         if self.accuracy_penalty_timer > 0:
             self.accuracy_penalty_timer -= 1
             self.pulse_effect = True
@@ -4895,8 +4809,7 @@ class LaserTower(Tower):
         
         if self.effect_icon_timer > 0:
             self.effect_icon_timer -= 1
-        
-        # Laser logic
+
         if self.cooldown > 0:
             self.cooldown -= dt
 
@@ -4913,7 +4826,6 @@ class LaserTower(Tower):
             return
 
         if self.cooldown <= 0:
-            # Apply accuracy penalty
             if random.random() < self.accuracy_penalty:
                 self.cooldown = self.fire_rate / self.fire_rate_modifier
                 self.firing_beam = False
@@ -4961,8 +4873,7 @@ class LaserTower(Tower):
                 surf, (0, 255, 0),
                 (self.x - self.size//2, self.y - self.size//2 - 14, hp_w, 8)
             )
-        
-        # Effect indicators
+
         icon_y_offset = self.size//2 + 15
         icon_x = self.x - self.size//2
         
@@ -5043,21 +4954,17 @@ class MafiaTower(Tower):
         }
 
     def update(self, dt, enemies, state_data=None):
-        # Handle effect tracking (akan diproses di super().update())
-        
-        # Mafia cash generation
+
         self.cash_timer += dt
         if self.cash_timer >= self.cash_interval:
             self.cash_timer -= self.cash_interval
             if state_data is not None:
                 state_data['money'] += self.cash_per_interval
 
-        # Mafia shooting logic with fire_rate_modifier
         self.cooldown -= dt
         target = self.get_first_enemy(enemies)
 
         if target and self.cooldown <= 0:
-            # Apply accuracy penalty
             if random.random() < self.accuracy_penalty:
                 self.cooldown = self.fire_rate / self.fire_rate_modifier
                 self.show_laser_timer = 6
@@ -5068,7 +4975,6 @@ class MafiaTower(Tower):
                 self.last_shot_pos = (target.x, target.y)
                 self.show_laser_timer = 6
 
-        # Call parent update for effect tracking
         super().update(dt, enemies)
 
     def draw(self, surf, selected=False):
@@ -5109,8 +5015,7 @@ class MafiaTower(Tower):
                 surf, (0, 255, 0),
                 (self.x - self.size//2, self.y - self.size//2 - 14, hp_w, 8)
             )
-        
-        # Effect indicators
+
         icon_y_offset = self.size//2 + 15
         icon_x = self.x - self.size//2
         
@@ -5196,7 +5101,6 @@ class FrostBlastTower(Tower):
         }
 
     def update(self, dt, enemies):
-        # Handle effect tracking
         if self.accuracy_penalty_timer > 0:
             self.accuracy_penalty_timer -= 1
             self.pulse_effect = True
@@ -5215,16 +5119,14 @@ class FrostBlastTower(Tower):
         
         if self.effect_icon_timer > 0:
             self.effect_icon_timer -= 1
-        
-        # Frost Blast logic
+
         if self.cooldown > 0:
             self.cooldown -= dt
 
         target = self.get_first_enemy(enemies)
         if not target or self.cooldown > 0:
             return
-        
-        # Apply accuracy penalty
+
         if random.random() < self.accuracy_penalty:
             self.cooldown = self.fire_rate / self.fire_rate_modifier
             self.show_laser_timer = 3
@@ -5305,8 +5207,7 @@ class FrostBlastTower(Tower):
                 (0, 255, 0),
                 (self.x - self.size // 2, self.y - self.size // 2 - 12, hp_w, 8)
             )
-        
-        # Effect indicators
+
         icon_y_offset = self.size//2 + 15
         icon_x = self.x - self.size//2
         
@@ -5323,6 +5224,849 @@ class FrostBlastTower(Tower):
             pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 5)
             pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 3, 1)
             surf.blit(chrono_surf, (icon_x, self.y + icon_y_offset))
+
+# ------------------------------------------------
+# RAILGUN TOWER - High Damage Penetrating Sniper
+# ------------------------------------------------
+class RailgunTower(Tower):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Railgun Square"
+        self.cost = 1500
+        self.total_invest = self.cost
+        self.size = 36
+        self.color = (40, 180, 240)
+        self.range = 600
+        self.damage = 850
+        self.fire_rate = 4.5
+        self.max_hp = 220
+        self.hp = self.max_hp
+        self.type_name = "Piercer"
+        self.bullet_count = 1
+        self.penetration = 5
+        self.level = 1
+        self.max_level = 4
+        self.upgrade_info = {
+            2: ["+250 Damage", "+100 Range", "Fire Rate +8%", "+2 Penetration", "+80 HP"],
+            3: ["+400 Damage", "+150 Range", "Fire Rate +12%", "+3 Penetration", "+120 HP"],
+            4: ["+700 Damage", "+200 Range", "Fire Rate +20%", "+5 Penetration", "+180 HP"],
+        }
+        self.upgrade_cost = {
+            1: 2200,
+            2: 3500,
+            3: 5500
+        }
+        self.cooldown = 0
+        self.laser_effect = []
+        self.show_laser_timer = 0
+        
+    def update(self, dt, enemies):
+        if self.accuracy_penalty_timer > 0:
+            self.accuracy_penalty_timer -= 1
+            self.pulse_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.accuracy_penalty = 0.0
+            self.pulse_effect = False
+
+        if self.slow_timer > 0:
+            self.slow_timer -= 1
+            self.chrono_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.fire_rate_modifier = 1.0
+            self.chrono_effect = False
+        
+        if self.effect_icon_timer > 0:
+            self.effect_icon_timer -= 1
+            
+        if self.cooldown > 0:
+            self.cooldown -= dt
+            
+        target = self.get_furthest_enemy(enemies)
+        if not target or self.cooldown > 0:
+            return
+            
+        if random.random() < self.accuracy_penalty:
+            self.cooldown = self.fire_rate / self.fire_rate_modifier
+            self.show_laser_timer = 5
+            return
+            
+        angle = math.atan2(target.y - self.y, target.x - self.x)
+        end_x = self.x + math.cos(angle) * self.range
+        end_y = self.y + math.sin(angle) * self.range
+        
+        hit_enemies = []
+        for e in enemies:
+            dist_to_line = self.dist_point_to_segment(e.x, e.y, self.x, self.y, end_x, end_y)
+            if dist_to_line <= 8:
+                hit_enemies.append(e)
+        
+        hit_enemies.sort(key=lambda e: math.hypot(e.x - self.x, e.y - self.y))
+        for i, e in enumerate(hit_enemies[:self.penetration]):
+            e.take_damage(self.damage)
+            
+        self.laser_effect = [(self.x, self.y), (end_x, end_y)]
+        self.show_laser_timer = 8
+        self.cooldown = self.fire_rate / self.fire_rate_modifier
+        
+    def get_furthest_enemy(self, enemies):
+        furthest = None
+        max_dist = 0
+        for e in enemies:
+            d = math.hypot(e.x - self.x, e.y - self.y)
+            if d <= self.range and d > max_dist:
+                max_dist = d
+                furthest = e
+        return furthest
+        
+    def draw(self, surf, selected=False):
+        if selected:
+            pygame.draw.circle(surf, (0, 0, 0), (int(self.x), int(self.y)), self.range, 2)
+            
+        pygame.draw.rect(surf, self.color,
+                        (self.x - self.size//2, self.y - self.size//2, self.size, self.size),
+                        border_radius=8)
+        
+        level_text = FONT_TOWER.render(str(self.level), True, (0, 0, 0))
+        surf.blit(level_text, (self.x - 6, self.y - 9))
+        
+        if self.show_laser_timer > 0 and self.laser_effect:
+            start, end = self.laser_effect
+            pygame.draw.line(surf, (100, 220, 255), (int(start[0]), int(start[1])),
+                           (int(end[0]), int(end[1])), 4)
+            self.show_laser_timer -= 1
+            
+        if self.hp < self.max_hp:
+            hp_w = int(self.size * (self.hp / self.max_hp))
+            pygame.draw.rect(surf, (80, 80, 80),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, self.size, 8))
+            pygame.draw.rect(surf, (0, 255, 0),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, hp_w, 8))
+                           
+        icon_y_offset = self.size//2 + 15
+        icon_x = self.x - self.size//2
+        
+        if getattr(self, 'pulse_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            pulse_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            pulse_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(pulse_surf, (0, 255, 127, pulse_alpha), (6, 6), 5)
+            surf.blit(pulse_surf, (icon_x, self.y + icon_y_offset))
+            icon_x += 14
+        
+        if getattr(self, 'chrono_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            chrono_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            chrono_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 5)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 3, 1)
+            surf.blit(chrono_surf, (icon_x, self.y + icon_y_offset))
+            
+    def upgrade(self):
+        if self.level >= self.max_level:
+            return False
+            
+        self.level += 1
+        self.total_invest += self.upgrade_cost[self.level - 1]
+        
+        if self.level == 2:
+            self.damage += 250
+            self.range += 100
+            self.fire_rate *= 0.92
+            self.penetration += 2
+            self.max_hp += 80
+        elif self.level == 3:
+            self.damage += 400
+            self.range += 150
+            self.fire_rate *= 0.88
+            self.penetration += 3
+            self.max_hp += 120
+        elif self.level == 4:
+            self.damage += 700
+            self.range += 200
+            self.fire_rate *= 0.80
+            self.penetration += 5
+            self.max_hp += 180
+            
+        self.hp = self.max_hp
+        return True
+
+# ------------------------------------------------
+# FLAMETHROWER TOWER - Short Range AOE Fire
+# ------------------------------------------------
+class FlamethrowerTower(Tower):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Flamethrower Square"
+        self.cost = 800
+        self.total_invest = self.cost
+        self.size = 34
+        self.color = (255, 80, 20)
+        self.range = 140
+        self.damage = 18
+        self.fire_rate = 0.15
+        self.max_hp = 280
+        self.hp = self.max_hp
+        self.type_name = "Burner"
+        self.bullet_count = 1
+        self.cone_angle = 45
+        self.burn_duration = 2.0
+        self.burn_dps = 8
+        self.level = 1
+        self.max_level = 4
+        self.upgrade_info = {
+            2: ["+8 Damage", "+30 Range", "Fire Rate +10%", "+3 Burn DPS", "+90 HP"],
+            3: ["+12 Damage", "+40 Range", "Fire Rate +15%", "+5 Burn DPS", "+130 HP"],
+            4: ["+20 Damage", "+60 Range", "Fire Rate +25%", "+8 Burn DPS", "+200 HP"],
+        }
+        self.upgrade_cost = {
+            1: 1200,
+            2: 1900,
+            3: 3000
+        }
+        self.cooldown = 0
+        self.flame_particles = []
+        self.is_firing = False
+        
+    def update(self, dt, enemies):
+        if self.accuracy_penalty_timer > 0:
+            self.accuracy_penalty_timer -= 1
+            self.pulse_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.accuracy_penalty = 0.0
+            self.pulse_effect = False
+
+        if self.slow_timer > 0:
+            self.slow_timer -= 1
+            self.chrono_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.fire_rate_modifier = 1.0
+            self.chrono_effect = False
+        
+        if self.effect_icon_timer > 0:
+            self.effect_icon_timer -= 1
+            
+        for particle in self.flame_particles[:]:
+            particle[2] -= 1
+            if particle[2] <= 0:
+                self.flame_particles.remove(particle)
+                
+        if self.cooldown > 0:
+            self.cooldown -= dt
+            self.is_firing = False
+            return
+            
+        enemies_in_cone = []
+        for e in enemies:
+            dist = math.hypot(e.x - self.x, e.y - self.y)
+            if dist <= self.range:
+                angle_to_enemy = math.degrees(math.atan2(e.y - self.y, e.x - self.x))
+                
+                closest = min(enemies, key=lambda en: math.hypot(en.x - self.x, en.y - self.y), default=None)
+                if closest:
+                    facing_angle = math.degrees(math.atan2(closest.y - self.y, closest.x - self.x))
+                    angle_diff = abs((angle_to_enemy - facing_angle + 180) % 360 - 180)
+                    
+                    if angle_diff <= self.cone_angle / 2:
+                        enemies_in_cone.append(e)
+                        
+        if not enemies_in_cone:
+            self.is_firing = False
+            return
+            
+        if random.random() < self.accuracy_penalty:
+            self.cooldown = self.fire_rate / self.fire_rate_modifier
+            self.is_firing = False
+            return
+            
+        self.is_firing = True
+        for e in enemies_in_cone:
+            e.take_damage(self.damage)
+            if not hasattr(e, 'burn_timer'):
+                e.burn_timer = 0
+                e.burn_dps = 0
+            e.burn_timer = self.burn_duration / (self.fire_rate / self.fire_rate_modifier)
+            e.burn_dps = self.burn_dps
+            
+            self.flame_particles.append([e.x, e.y, 10])
+            
+        self.cooldown = self.fire_rate / self.fire_rate_modifier
+        
+    def draw(self, surf, selected=False):
+        if selected:
+            pygame.draw.circle(surf, (0, 0, 0), (int(self.x), int(self.y)), self.range, 2)
+            
+        pygame.draw.rect(surf, self.color,
+                        (self.x - self.size//2, self.y - self.size//2, self.size, self.size),
+                        border_radius=6)
+        
+        level_text = FONT_TOWER.render(str(self.level), True, (255, 255, 255))
+        surf.blit(level_text, (self.x - 6, self.y - 9))
+        
+        for particle in self.flame_particles:
+            alpha = int(255 * (particle[2] / 10))
+            color = (255, int(100 + 155 * (particle[2] / 10)), 0)
+            pygame.draw.circle(surf, color, (int(particle[0]), int(particle[1])), 4)
+            
+        if self.hp < self.max_hp:
+            hp_w = int(self.size * (self.hp / self.max_hp))
+            pygame.draw.rect(surf, (80, 80, 80),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, self.size, 8))
+            pygame.draw.rect(surf, (0, 255, 0),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, hp_w, 8))
+                           
+        icon_y_offset = self.size//2 + 15
+        icon_x = self.x - self.size//2
+        
+        if getattr(self, 'pulse_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            pulse_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            pulse_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(pulse_surf, (0, 255, 127, pulse_alpha), (6, 6), 5)
+            surf.blit(pulse_surf, (icon_x, self.y + icon_y_offset))
+            icon_x += 14
+        
+        if getattr(self, 'chrono_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            chrono_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            chrono_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 5)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 3, 1)
+            surf.blit(chrono_surf, (icon_x, self.y + icon_y_offset))
+            
+    def upgrade(self):
+        if self.level >= self.max_level:
+            return False
+            
+        self.level += 1
+        self.total_invest += self.upgrade_cost[self.level - 1]
+        
+        if self.level == 2:
+            self.damage += 8
+            self.range += 30
+            self.fire_rate *= 0.90
+            self.burn_dps += 3
+            self.max_hp += 90
+        elif self.level == 3:
+            self.damage += 12
+            self.range += 40
+            self.fire_rate *= 0.85
+            self.burn_dps += 5
+            self.max_hp += 130
+        elif self.level == 4:
+            self.damage += 20
+            self.range += 60
+            self.fire_rate *= 0.75
+            self.burn_dps += 8
+            self.max_hp += 200
+            
+        self.hp = self.max_hp
+        return True
+
+# ------------------------------------------------
+# TESLA COIL TOWER - Chain Lightning
+# ------------------------------------------------
+class TeslaTower(Tower):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Tesla Square"
+        self.cost = 1100
+        self.total_invest = self.cost
+        self.size = 35
+        self.color = (100, 150, 255)
+        self.range = 220
+        self.damage = 140
+        self.fire_rate = 1.2
+        self.max_hp = 250
+        self.hp = self.max_hp
+        self.type_name = "Conductor"
+        self.bullet_count = 1
+        self.chain_count = 4
+        self.chain_range = 120
+        self.chain_damage_reduction = 0.75
+        self.level = 1
+        self.max_level = 4
+        self.upgrade_info = {
+            2: ["+50 Damage", "+40 Range", "Fire Rate +8%", "+2 Chains", "+80 HP"],
+            3: ["+80 Damage", "+60 Range", "Fire Rate +12%", "+3 Chains", "+120 HP"],
+            4: ["+150 Damage", "+80 Range", "Fire Rate +20%", "+4 Chains", "+180 HP"],
+        }
+        self.upgrade_cost = {
+            1: 1700,
+            2: 2700,
+            3: 4300
+        }
+        self.cooldown = 0
+        self.lightning_chains = []
+        self.show_lightning_timer = 0
+        
+    def update(self, dt, enemies):
+        if self.accuracy_penalty_timer > 0:
+            self.accuracy_penalty_timer -= 1
+            self.pulse_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.accuracy_penalty = 0.0
+            self.pulse_effect = False
+
+        if self.slow_timer > 0:
+            self.slow_timer -= 1
+            self.chrono_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.fire_rate_modifier = 1.0
+            self.chrono_effect = False
+        
+        if self.effect_icon_timer > 0:
+            self.effect_icon_timer -= 1
+            
+        if self.cooldown > 0:
+            self.cooldown -= dt
+            
+        target = self.get_first_enemy(enemies)
+        if not target or self.cooldown > 0:
+            return
+            
+        if random.random() < self.accuracy_penalty:
+            self.cooldown = self.fire_rate / self.fire_rate_modifier
+            self.show_lightning_timer = 5
+            return
+            
+        hit_enemies = set()
+        current_target = target
+        current_damage = self.damage
+        self.lightning_chains = [(self.x, self.y)]
+        
+        for i in range(self.chain_count + 1):
+            if not current_target:
+                break
+                
+            hit_enemies.add(current_target)
+            current_target.take_damage(current_damage)
+            self.lightning_chains.append((current_target.x, current_target.y))
+            
+            next_target = None
+            min_dist = self.chain_range
+            
+            for e in enemies:
+                if e not in hit_enemies:
+                    dist = math.hypot(e.x - current_target.x, e.y - current_target.y)
+                    if dist < min_dist:
+                        min_dist = dist
+                        next_target = e
+                        
+            current_target = next_target
+            current_damage *= self.chain_damage_reduction
+            
+        self.show_lightning_timer = 6
+        self.cooldown = self.fire_rate / self.fire_rate_modifier
+        
+    def draw(self, surf, selected=False):
+        if selected:
+            pygame.draw.circle(surf, (0, 0, 0), (int(self.x), int(self.y)), self.range, 2)
+            
+        pygame.draw.rect(surf, self.color,
+                        (self.x - self.size//2, self.y - self.size//2, self.size, self.size),
+                        border_radius=7)
+        
+        level_text = FONT_TOWER.render(str(self.level), True, (255, 255, 255))
+        surf.blit(level_text, (self.x - 6, self.y - 9))
+        
+        if self.show_lightning_timer > 0 and len(self.lightning_chains) > 1:
+            for i in range(len(self.lightning_chains) - 1):
+                start = self.lightning_chains[i]
+                end = self.lightning_chains[i + 1]
+                
+                pygame.draw.line(surf, (150, 200, 255), 
+                               (int(start[0]), int(start[1])),
+                               (int(end[0]), int(end[1])), 3)
+                
+                pygame.draw.line(surf, (200, 220, 255), 
+                               (int(start[0]), int(start[1])),
+                               (int(end[0]), int(end[1])), 1)
+                               
+            self.show_lightning_timer -= 1
+            
+        if self.hp < self.max_hp:
+            hp_w = int(self.size * (self.hp / self.max_hp))
+            pygame.draw.rect(surf, (80, 80, 80),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, self.size, 8))
+            pygame.draw.rect(surf, (0, 255, 0),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, hp_w, 8))
+                           
+        icon_y_offset = self.size//2 + 15
+        icon_x = self.x - self.size//2
+        
+        if getattr(self, 'pulse_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            pulse_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            pulse_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(pulse_surf, (0, 255, 127, pulse_alpha), (6, 6), 5)
+            surf.blit(pulse_surf, (icon_x, self.y + icon_y_offset))
+            icon_x += 14
+        
+        if getattr(self, 'chrono_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            chrono_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            chrono_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 5)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 3, 1)
+            surf.blit(chrono_surf, (icon_x, self.y + icon_y_offset))
+            
+    def upgrade(self):
+        if self.level >= self.max_level:
+            return False
+            
+        self.level += 1
+        self.total_invest += self.upgrade_cost[self.level - 1]
+        
+        if self.level == 2:
+            self.damage += 50
+            self.range += 40
+            self.fire_rate *= 0.92
+            self.chain_count += 2
+            self.max_hp += 80
+        elif self.level == 3:
+            self.damage += 80
+            self.range += 60
+            self.fire_rate *= 0.88
+            self.chain_count += 3
+            self.max_hp += 120
+        elif self.level == 4:
+            self.damage += 150
+            self.range += 80
+            self.fire_rate *= 0.80
+            self.chain_count += 4
+            self.max_hp += 180
+            
+        self.hp = self.max_hp
+        return True
+
+# ------------------------------------------------
+# POISON DART TOWER - Damage Over Time
+# ------------------------------------------------
+class PoisonTower(Tower):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Poison Square"
+        self.cost = 650
+        self.total_invest = self.cost
+        self.size = 32
+        self.color = (120, 200, 80)
+        self.range = 200
+        self.damage = 25
+        self.fire_rate = 0.8
+        self.max_hp = 240
+        self.hp = self.max_hp
+        self.type_name = "Toxin"
+        self.bullet_count = 1
+        self.poison_duration = 5.0
+        self.poison_dps = 40
+        self.poison_stack_limit = 5
+        self.level = 1
+        self.max_level = 4
+        self.upgrade_info = {
+            2: ["+10 Init Damage", "+40 Range", "Fire Rate +10%", "+15 Poison DPS", "+70 HP"],
+            3: ["+15 Init Damage", "+60 Range", "Fire Rate +15%", "+25 Poison DPS", "+110 HP"],
+            4: ["+25 Init Damage", "+80 Range", "Fire Rate +25%", "+40 Poison DPS", "+160 HP"],
+        }
+        self.upgrade_cost = {
+            1: 1000,
+            2: 1600,
+            3: 2500
+        }
+        self.cooldown = 0
+        self.last_target = None
+        self.show_dart_timer = 0
+        
+    def update(self, dt, enemies):
+        if self.accuracy_penalty_timer > 0:
+            self.accuracy_penalty_timer -= 1
+            self.pulse_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.accuracy_penalty = 0.0
+            self.pulse_effect = False
+
+        if self.slow_timer > 0:
+            self.slow_timer -= 1
+            self.chrono_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.fire_rate_modifier = 1.0
+            self.chrono_effect = False
+        
+        if self.effect_icon_timer > 0:
+            self.effect_icon_timer -= 1
+            
+        for e in enemies:
+            if hasattr(e, 'poison_stacks') and e.poison_stacks > 0:
+                if not hasattr(e, 'poison_tick_timer'):
+                    e.poison_tick_timer = 0
+                    
+                e.poison_tick_timer += dt
+                if e.poison_tick_timer >= 1.0:
+                    total_poison_damage = self.poison_dps * e.poison_stacks
+                    e.take_damage(total_poison_damage, "poison")
+                    e.poison_tick_timer = 0
+                    
+                if not hasattr(e, 'poison_duration_left'):
+                    e.poison_duration_left = self.poison_duration
+                e.poison_duration_left -= dt
+                
+                if e.poison_duration_left <= 0:
+                    e.poison_stacks = 0
+                    
+        if self.cooldown > 0:
+            self.cooldown -= dt
+            
+        target = self.get_first_enemy(enemies)
+        if not target or self.cooldown > 0:
+            return
+            
+        if random.random() < self.accuracy_penalty:
+            self.cooldown = self.fire_rate / self.fire_rate_modifier
+            self.show_dart_timer = 5
+            return
+            
+        target.take_damage(self.damage)
+        
+        if not hasattr(target, 'poison_stacks'):
+            target.poison_stacks = 0
+        target.poison_stacks = min(target.poison_stacks + 1, self.poison_stack_limit)
+        target.poison_duration_left = self.poison_duration
+        
+        self.last_target = (target.x, target.y)
+        self.show_dart_timer = 8
+        self.cooldown = self.fire_rate / self.fire_rate_modifier
+        
+    def draw(self, surf, selected=False):
+        if selected:
+            pygame.draw.circle(surf, (0, 0, 0), (int(self.x), int(self.y)), self.range, 2)
+            
+        pygame.draw.rect(surf, self.color,
+                        (self.x - self.size//2, self.y - self.size//2, self.size, self.size),
+                        border_radius=6)
+        
+        level_text = FONT_TOWER.render(str(self.level), True, (0, 0, 0))
+        surf.blit(level_text, (self.x - 6, self.y - 9))
+        
+        if self.show_dart_timer > 0 and self.last_target:
+            pygame.draw.line(surf, (150, 255, 120), 
+                           (int(self.x), int(self.y)),
+                           (int(self.last_target[0]), int(self.last_target[1])), 2)
+            self.show_dart_timer -= 1
+            
+        if self.hp < self.max_hp:
+            hp_w = int(self.size * (self.hp / self.max_hp))
+            pygame.draw.rect(surf, (80, 80, 80),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, self.size, 8))
+            pygame.draw.rect(surf, (0, 255, 0),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, hp_w, 8))
+                           
+        icon_y_offset = self.size//2 + 15
+        icon_x = self.x - self.size//2
+        
+        if getattr(self, 'pulse_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            pulse_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            pulse_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(pulse_surf, (0, 255, 127, pulse_alpha), (6, 6), 5)
+            surf.blit(pulse_surf, (icon_x, self.y + icon_y_offset))
+            icon_x += 14
+        
+        if getattr(self, 'chrono_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            chrono_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            chrono_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 5)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 3, 1)
+            surf.blit(chrono_surf, (icon_x, self.y + icon_y_offset))
+            
+    def upgrade(self):
+        if self.level >= self.max_level:
+            return False
+            
+        self.level += 1
+        self.total_invest += self.upgrade_cost[self.level - 1]
+        
+        if self.level == 2:
+            self.damage += 10
+            self.range += 40
+            self.fire_rate *= 0.90
+            self.poison_dps += 15
+            self.max_hp += 70
+        elif self.level == 3:
+            self.damage += 15
+            self.range += 60
+            self.fire_rate *= 0.85
+            self.poison_dps += 25
+            self.max_hp += 110
+        elif self.level == 4:
+            self.damage += 25
+            self.range += 80
+            self.fire_rate *= 0.75
+            self.poison_dps += 40
+            self.max_hp += 160
+            
+        self.hp = self.max_hp
+        return True
+
+# ------------------------------------------------
+# MEDIC TOWER - Heals Nearby Towers (Support)
+# ------------------------------------------------
+class MedicTower(Tower):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.name = "Medic Square"
+        self.cost = 950
+        self.total_invest = self.cost
+        self.size = 33
+        self.color = (255, 180, 200)
+        self.range = 180
+        self.damage = 0
+        self.heal_amount = 40
+        self.fire_rate = 1.5
+        self.max_hp = 320
+        self.hp = self.max_hp
+        self.type_name = "Support"
+        self.bullet_count = 0
+        self.heal_targets = 3
+        self.overheal_bonus = 0.15
+        self.level = 1
+        self.max_level = 4
+        self.upgrade_info = {
+            2: ["+20 Heal", "+40 Range", "Heal Rate +12%", "+1 Targets", "+100 HP"],
+            3: ["+35 Heal", "+60 Range", "Heal Rate +18%", "+2 Targets", "+150 HP"],
+            4: ["+60 Heal", "+80 Range", "Heal Rate +28%", "+3 Targets", "+220 HP"],
+        }
+        self.upgrade_cost = {
+            1: 1500,
+            2: 2400,
+            3: 3800
+        }
+        self.cooldown = 0
+        self.heal_beams = []
+        self.show_heal_timer = 0
+        
+    def update(self, dt, enemies):
+        if self.accuracy_penalty_timer > 0:
+            self.accuracy_penalty_timer -= 1
+            self.pulse_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.accuracy_penalty = 0.0
+            self.pulse_effect = False
+
+        if self.slow_timer > 0:
+            self.slow_timer -= 1
+            self.chrono_effect = True
+            self.effect_icon_timer = 30
+        else:
+            self.fire_rate_modifier = 1.0
+            self.chrono_effect = False
+        
+        if self.effect_icon_timer > 0:
+            self.effect_icon_timer -= 1
+            
+        if self.cooldown > 0:
+            self.cooldown -= dt
+            return
+            
+        if not hasattr(self, 'all_towers'):
+            return
+            
+        damaged_towers = []
+        for t in self.all_towers:
+            if t == self:
+                continue
+            dist = math.hypot(t.x - self.x, t.y - self.y)
+            if dist <= self.range and t.hp < t.max_hp:
+                damaged_towers.append((t, t.hp / t.max_hp))
+                
+        damaged_towers.sort(key=lambda x: x[1])
+        
+        self.heal_beams = []
+        for i, (tower, _) in enumerate(damaged_towers[:self.heal_targets]):
+            max_heal_hp = tower.max_hp * (1 + self.overheal_bonus)
+            tower.hp = min(tower.hp + self.heal_amount, max_heal_hp)
+            self.heal_beams.append((tower.x, tower.y))
+            
+        if self.heal_beams:
+            self.show_heal_timer = 10
+            self.cooldown = self.fire_rate / self.fire_rate_modifier
+        
+    def draw(self, surf, selected=False):
+        if selected:
+            pygame.draw.circle(surf, (0, 255, 0), (int(self.x), int(self.y)), self.range, 2)
+            
+        pygame.draw.rect(surf, self.color,
+                        (self.x - self.size//2, self.y - self.size//2, self.size, self.size),
+                        border_radius=8)
+        
+        cross_size = self.size // 3
+        pygame.draw.rect(surf, (255, 255, 255),
+                        (self.x - 2, self.y - cross_size//2, 4, cross_size))
+        pygame.draw.rect(surf, (255, 255, 255),
+                        (self.x - cross_size//2, self.y - 2, cross_size, 4))
+        
+        level_text = FONT_TOWER.render(str(self.level), True, (0, 0, 0))
+        surf.blit(level_text, (self.x - 6, self.y + 12))
+        
+        if self.show_heal_timer > 0 and self.heal_beams:
+            for target_pos in self.heal_beams:
+                pygame.draw.line(surf, (100, 255, 150), 
+                               (int(self.x), int(self.y)),
+                               (int(target_pos[0]), int(target_pos[1])), 2)
+            self.show_heal_timer -= 1
+            
+        if self.hp < self.max_hp:
+            hp_w = int(self.size * (self.hp / self.max_hp))
+            pygame.draw.rect(surf, (80, 80, 80),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, self.size, 8))
+            pygame.draw.rect(surf, (0, 255, 0),
+                           (self.x - self.size//2, self.y - self.size//2 - 12, hp_w, 8))
+                           
+        icon_y_offset = self.size//2 + 15
+        icon_x = self.x - self.size//2
+        
+        if getattr(self, 'pulse_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            pulse_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            pulse_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(pulse_surf, (0, 255, 127, pulse_alpha), (6, 6), 5)
+            surf.blit(pulse_surf, (icon_x, self.y + icon_y_offset))
+            icon_x += 14
+        
+        if getattr(self, 'chrono_effect', False) and getattr(self, 'effect_icon_timer', 0) > 0:
+            chrono_alpha = int(100 + 155 * abs(math.sin(pygame.time.get_ticks() / 200)))
+            chrono_surf = pygame.Surface((12, 12), pygame.SRCALPHA)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 5)
+            pygame.draw.circle(chrono_surf, (0, 0, 255, chrono_alpha), (6, 6), 3, 1)
+            surf.blit(chrono_surf, (icon_x, self.y + icon_y_offset))
+            
+    def upgrade(self):
+        if self.level >= self.max_level:
+            return False
+            
+        self.level += 1
+        self.total_invest += self.upgrade_cost[self.level - 1]
+        
+        if self.level == 2:
+            self.heal_amount += 20
+            self.range += 40
+            self.fire_rate *= 0.88
+            self.heal_targets += 1
+            self.max_hp += 100
+        elif self.level == 3:
+            self.heal_amount += 35
+            self.range += 60
+            self.fire_rate *= 0.82
+            self.heal_targets += 2
+            self.max_hp += 150
+        elif self.level == 4:
+            self.heal_amount += 60
+            self.range += 80
+            self.fire_rate *= 0.72
+            self.heal_targets += 3
+            self.max_hp += 220
+            
+        self.hp = self.max_hp
+        return True
 
 # ------------------------------------------------
 # UI UPGRADE (FUNGSI DI LUAR CLASS)
@@ -5374,21 +6118,18 @@ def draw_upgrade_ui(screen, tower):
     current_y += effects_title_surface.get_height() + 5
 
     effects = []
-    
-    # ChronoCircle effect (slow)
+
     if tower.fire_rate_modifier < 1.0:
         slow_percent = int((1.0 - tower.fire_rate_modifier) * 100)
-        effects.append(f"⏱ Chrono: -{slow_percent}% Fire Rate")
+        effects.append(f"Chrono: -{slow_percent}% Fire Rate")
         effects.append(f"   ({int(tower.slow_timer/60)}s left)")
-        # Tampilkan penurunan DPS
         if base_dps != current_dps:
             dps_loss = base_dps - current_dps
             effects.append(f"   DPS: {base_dps:.1f} → {current_dps:.1f}")
-    
-    # PulseWalker effect (accuracy penalty)
+
     if tower.accuracy_penalty > 0:
         miss_percent = int(tower.accuracy_penalty * 100)
-        effects.append(f"⚡ Pulse: {miss_percent}% Miss Chance")
+        effects.append(f"Pulse: {miss_percent}% Miss Chance")
         effects.append(f"   ({int(tower.accuracy_penalty_timer/60)}s left)")
 
     if not effects:
@@ -5405,9 +6146,7 @@ def draw_upgrade_ui(screen, tower):
         upgrade_title_surface = font_mid.render("Next Upgrade:", True, BLACK)
         screen.blit(upgrade_title_surface, (PANEL_X + PADDING_X, PREVIEW_Y - 35))
         current_y = PREVIEW_Y + upgrade_title_surface.get_height() - 195
-
         next_lv = tower.level + 1
-
         preview = tower.upgrade_info.get(next_lv, [])
         upgrade_price = tower.upgrade_cost.get(tower.level, 0)
 
@@ -5427,7 +6166,6 @@ def draw_upgrade_ui(screen, tower):
     BUTTON_Y = PANEL_Y + PANEL_H - 60 
     BUTTON_W, BUTTON_H = 130, 45
     BUTTON_GAP = 10
-
     upgrade_rect = pygame.Rect(PANEL_X + PADDING_X, BUTTON_Y, BUTTON_W, BUTTON_H)
 
     if tower.level < tower.max_level:
@@ -5464,6 +6202,11 @@ TOWER_TYPES = {
     "Sniper (950)": SniperTower,
     "Laser (1,2K)": LaserTower,
     "Frost Blast (1,8K)": FrostBlastTower,
+    "Poison (650)": PoisonTower,
+    "Flamethrower (800)": FlamethrowerTower,
+    "Medic (950)": MedicTower,
+    "Tesla (1,1K)": TeslaTower,
+    "Railgun (1,5K)": RailgunTower,
 }
 
 # ------------------------------------------------
@@ -5493,7 +6236,7 @@ def chapter1_start_screen():
             pygame.quit(); sys.exit()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not can_click():  # Cek cooldown
+            if not can_click():
                 continue
                 
             mx, my = event.pos
@@ -5870,10 +6613,8 @@ def chapter1_screen(state_data):
     # ------------------------------------------------
     # BOSS HP BAR SYSTEM - UPDATE POSISI & URUTAN
     # ------------------------------------------------
-    # Ambil semua boss dari enemies
     all_bosses = [e for e in state_data['enemies'] if hasattr(e, 'is_boss') and e.is_boss and e.hp > 0]
-    
-    # Update urutan dan set posisi untuk setiap boss
+
     boss_hp_bar.update(all_bosses)
 
     back_btn = draw_button("Menyerah", 50, 635, 250, 80, mouse_pos)
@@ -5903,7 +6644,6 @@ def chapter1_screen(state_data):
         if isinstance(e, (MafiaCent, PiMaster, TitanCircle, CycleLead)):
             e.update(state_data['enemies'], state_data['towers'])
         elif isinstance(e, (PulseWalker, ChronoCircle)):
-            # PulseWalker dan ChronoCircle perlu parameter towers untuk efeknya
             e.update(state_data['towers'])
         else:
             e.update()
@@ -5941,6 +6681,10 @@ def chapter1_screen(state_data):
                 pass
 
     dt = clock.get_time() / 1000.0
+
+    for t in state_data['towers']:
+        if isinstance(t, MedicTower):
+            t.all_towers = state_data['towers']
 
     for t in list(state_data['towers']):
         if isinstance(t, MafiaTower):
@@ -6990,10 +7734,8 @@ def winter_event_gameplay(event_data):
     # ------------------------------------------------
     # BOSS HP BAR SYSTEM - UPDATE POSISI & URUTAN
     # ------------------------------------------------
-    # Ambil semua boss dari enemies
     all_bosses = [e for e in event_data['enemies'] if hasattr(e, 'is_boss') and e.is_boss and e.hp > 0]
-    
-    # Update urutan dan set posisi untuk setiap boss
+
     boss_hp_bar.update(all_bosses)
 
     # ------------------------------
@@ -7038,7 +7780,6 @@ def winter_event_gameplay(event_data):
             e.update(event_data['enemies'], event_data['towers'])
         
         elif isinstance(e, PulseWalker):
-            # PulseWalker perlu parameter towers untuk efeknya
             e.update(event_data['towers'])
 
         else:
@@ -7147,6 +7888,10 @@ def winter_event_gameplay(event_data):
     # UPDATE & DRAW TOWERS
     # ------------------------------
     dt = clock.get_time() / 1000.0
+
+    for t in event_data['towers']:
+        if isinstance(t, MedicTower):
+            t.all_towers = event_data['towers']
     
     for t in list(event_data['towers']):
         if isinstance(t, MafiaTower):
